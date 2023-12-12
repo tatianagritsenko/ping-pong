@@ -20,6 +20,18 @@ class Ball {
 };
 
 class Paddle {
+protected:
+	void LimitMovement() {
+		if (y <= 0)
+		{
+			y = 0;
+		}
+		if (y + height >= GetScreenHeight())
+		{
+			y = GetScreenHeight() - height;
+		}
+	}
+
  public:
   float x, y;
   float width, height;
@@ -30,9 +42,27 @@ class Paddle {
   void Update() {
     if (IsKeyDown(KEY_UP)) y -= speed;
     if (IsKeyDown(KEY_DOWN)) y += speed;
-    if (y <= 0) y = 0;
-    if (y + height >= GetScreenHeight()) y = GetScreenHeight() - height;
+    LimitMovement();
   }
+};
+
+class CPUPaddle : public Paddle {
+public:
+
+	CPUPaddle(float w, float h, float x, float y, int s) : Paddle(w, h, x, y, s) { }
+
+	void Update(int ball_y)
+	{
+		if (y + height / 2 > ball_y)
+		{
+			y = y - speed;
+		}
+		if (y + height / 2 <= ball_y)
+		{
+			y = y + speed;
+		}
+		LimitMovement();
+	}
 };
 
 int main() {
@@ -42,17 +72,19 @@ int main() {
   Ball *ball = new Ball(screen_width / 2, screen_height / 2, 7, 7, 20);
   Paddle *player =
       new Paddle(25, 120, screen_width - 35, screen_height / 2 - 60, 6);
+ CPUPaddle *cpu = new CPUPaddle(25, 120, 10, screen_height / 2 - 60, 6);
   InitWindow(screen_width, screen_height, "Pong Game!");
   SetTargetFPS(60);
 
   while (WindowShouldClose() == false) {
     ball->Update();
     player->Update();
+    cpu->Update(ball->y);
     BeginDrawing();
     ClearBackground(BLACK);
     DrawLine(screen_width / 2, 0, screen_width / 2, screen_height, WHITE);
     ball->Draw();
-    DrawRectangle(10, screen_height / 2 - 60, 25, 120, WHITE);
+    cpu->Draw();
     player->Draw();
     EndDrawing();
   }
